@@ -23,7 +23,8 @@ server_sock.on("connection", (socket) => {
 		const subscription_list = subscription_map.get(message.topic);
 		switch (message.action) {
 			case "subscribe":
-				subscription_list.push(socket);
+				if (!subscription_list.find(sub => sub === socket))
+					subscription_list.push(socket);
 				break;
 			case "unsubscribe":
 				subscription_list.splice(subscription_list.indexOf(socket), 1);
