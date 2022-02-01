@@ -1,4 +1,11 @@
 {
+	"scripts": {
+		"webpack": "webpack --mode=development",
+		"webpack-watch": "webpack --mode=development --watch",
+		"webpack-prod": "webpack --mode=production",
+		"server-build": "tsc src/server.ts --jsx react --esModuleInterop true --outDir dist",
+		"server-run": "node ./dist/server.js"
+	},
 	"devDependencies": {
 		"@types/react": "^17.0.38",
 		"@types/react-dom": "^17.0.11",
