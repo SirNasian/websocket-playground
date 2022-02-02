@@ -1,59 +1,76 @@
-import React, { useEffect, useState } from "react";
+import { io, Socket } from "socket.io-client";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 
+interface Message {
+	room: string;
+	data: string;
+};
+
 const App = () => {
-	const [ws, _setWS] = useState<WebSocket>(new WebSocket("ws://localhost:42069/"));
-	const [topicText, setTopicText] = useState<string>("");
+	const [socket, setSocket] = useState<Socket>(undefined);
+	const [currentNamespace, setCurrentNamespace] = useState<string>("default");
+	const [namespaceText, setNamespaceText] = useState<string>("default");
+	const [roomText, setRoomText] = useState<string>("");
 	const [messageText, setMessageText] = useState<string>("");
-	const [topicList, setTopicList] = useState<string[]>([]);
+	const [roomList, setRoomList] = useState<string[]>([]);
+	const [messageList, setMessageList] = useState<Message[]>([]);
+	const messageListRef = useRef<Message[]>(messageList);
 
-	const handleSubscribe = () => {
-		let newTopicList = [...topicList];
-		topicText.split(";").forEach(topicText => {
-			ws.send(JSON.stringify({action: "subscribe", topic: topicText.trim()}));
-			if (!newTopicList.find(topic => topic === topicText.trim()))
-				newTopicList.push(topicText.trim());
-		});
-		setTopicList(newTopicList);
+	const connectNamespace = (namespaceName: string) => {
+		socket?.disconnect();
+		const s = io(`ws://localhost:42069/${namespaceName}`, { transports: ["websocket"] });
+		s.on("message", (msg: Message) => setMessageList([...messageListRef.current, msg]));
+		setSocket(s);
+		setCurrentNamespace(namespaceName);
+		setRoomList([]);
 	};
 
-	const handleUnsubscribe = () => {
-		let newTopicList = [...topicList];
-		topicText.split(";").forEach(topicText => {
-			ws.send(JSON.stringify({action: "unsubscribe", topic: topicText.trim()}));
-			newTopicList = newTopicList.filter((topic) => topic !== topicText.trim());
-		});
-		setTopicList(newTopicList);
+	const handleJoinRoom = () => {
+		if (!roomList.find(room => room === roomText)) {
+			socket.emit("join", roomText);
+			setRoomList([...roomList, roomText]);
+		}
 	};
 
-	const handleMessage = () => {
-		topicText.split(";").forEach(topicText => {
-			ws.send(JSON.stringify({action: "message", topic: topicText.trim(), data: messageText}));
-		});
+	const handleLeaveRoom = () => {
+		const index = roomList.indexOf(roomText);
+		if (index >= 0) {
+			socket.emit("leave", roomText);
+			setRoomList(roomList.filter(room => room !== roomText));
+		}
 	};
 
-	useEffect(() => { ws.onmessage = (ev) => alert(ev.data); }, [])
+	const handleNamespaceConnect = () => connectNamespace(namespaceText);
+	const handleMessage = () => socket.send({ room: roomText, data: messageText });
+
+	useEffect(() => handleNamespaceConnect(), []);
+	useEffect(() => { messageListRef.current = messageList }, [messageList]);
 
 	return (
 		<React.Fragment>
 			<div>
-				<input id="topicText" type="text" value={topicText} onChange={(event) => setTopicText(event.target.value)} />
-				<button type="button" onClick={handleSubscribe}>subscribe</button>
-				<button type="button" onClick={handleUnsubscribe}>unsubscribe</button>
+				<input type="text" value={namespaceText} onChange={(event) => setNamespaceText(event.target.value)} />
+				<button type="button" onClick={handleNamespaceConnect}>connect</button>
 			</div>
 			<div>
-				<input id="messageText" type="text" value={messageText} onChange={(event) => setMessageText(event.target.value)} />
-				<button type="button" onClick={handleMessage}>message</button>
+				<input type="text" value={roomText} onChange={(event) => setRoomText(event.target.value)} />
+				<button type="button" onClick={handleJoinRoom}>join room</button>
+				<button type="button" onClick={handleLeaveRoom}>leave room</button>
+			</div>
+			<div>
+				<input type="text" value={messageText} onChange={(event) => setMessageText(event.target.value)} />
+				<button type="button" onClick={handleMessage}>send message</button>
 			</div>
 			<br />
 			<div>
-				<b>Sending "{messageText}" to `{topicText}`</b>
+				<b>
+					<div>{`Current Namespace: "${currentNamespace}"`}</div>
+					<div>{`Current Rooms: ${roomList.map(room => `"${room}"`).join(", ")}`}</div>
+				</b>
 			</div>
 			<br />
-			<div>
-				<b>Topics subscribed to</b>
-			</div>
-			{topicList.map((topic) => <div>{topic}</div>)}
+			{messageList.map((msg, index) => <div key={index}>{`${msg.room}: ${msg.data}`}</div>)}
 		</React.Fragment>
 	);
 };
