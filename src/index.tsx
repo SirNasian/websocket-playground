@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Box } from "@mui/material";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { LoginScreen } from "./LoginScreen";
 
 type Screen = "login" | "chatroom";
+
+const theme = createTheme({
+	palette: {
+		mode: "dark"
+	}
+});
+
+const rootStyle      = document.getElementById("root").style;
+rootStyle.background = theme.palette.background.default;
+rootStyle.color      = theme.palette.text.primary;
 
 const App = () => {
 	const [ws, setWS] = useState<WebSocket>(undefined);
@@ -31,9 +42,11 @@ const App = () => {
 	useEffect(() => connectWebSocket(), []);
 
 	return (
-		<Box display="flex" alignItems="center" justifyContent="center" height="100vh">
-			<ScreenContent />
-		</Box>
+		<ThemeProvider theme={theme}>
+			<Box display="flex" alignItems="center" justifyContent="center" height="100vh">
+				<ScreenContent />
+			</Box>
+		</ThemeProvider>
 	);
 };
 
