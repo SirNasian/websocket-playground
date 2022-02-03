@@ -1,66 +1,30 @@
 import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
+import { LoginScreen } from "./LoginScreen";
+
+type Screen = "login";
 
 const App = () => {
 	const [ws, setWS] = useState<WebSocket>(undefined);
-	const [topicText, setTopicText] = useState<string>("");
-	const [messageText, setMessageText] = useState<string>("");
-	const [topicList, setTopicList] = useState<string[]>([]);
-
-	const handleSubscribe = () => {
-		let newTopicList = [...topicList];
-		topicText.split(";").forEach(topicText => {
-			ws.send(JSON.stringify({action: "subscribe", topic: topicText.trim()}));
-			if (!newTopicList.find(topic => topic === topicText.trim()))
-				newTopicList.push(topicText.trim());
-		});
-		setTopicList(newTopicList);
-	};
-
-	const handleUnsubscribe = () => {
-		let newTopicList = [...topicList];
-		topicText.split(";").forEach(topicText => {
-			ws.send(JSON.stringify({action: "unsubscribe", topic: topicText.trim()}));
-			newTopicList = newTopicList.filter((topic) => topic !== topicText.trim());
-		});
-		setTopicList(newTopicList);
-	};
-
-	const handleMessage = () => {
-		topicText.split(";").forEach(topicText => {
-			ws.send(JSON.stringify({action: "message", topic: topicText.trim(), data: messageText}));
-		});
-	};
+	const [screen, setScreen] = useState<Screen>("login");
 
 	const connectWebSocket = () => {
 		const ws = new WebSocket("ws://localhost:42069/");
 		ws.onmessage = (ev) => alert(ev.data);
-		ws.onclose = (ev) => setTimeout(() => connectWebSocket(), 5000);
 		setWS(ws);
+	};
+
+	const ScreenContent = () => {
+		switch (screen) {
+			case "login": return <LoginScreen />;
+		}
 	};
 
 	useEffect(() => connectWebSocket(), []);
 
 	return (
 		<React.Fragment>
-			<div>
-				<input id="topicText" type="text" value={topicText} onChange={(event) => setTopicText(event.target.value)} />
-				<button type="button" onClick={handleSubscribe}>subscribe</button>
-				<button type="button" onClick={handleUnsubscribe}>unsubscribe</button>
-			</div>
-			<div>
-				<input id="messageText" type="text" value={messageText} onChange={(event) => setMessageText(event.target.value)} />
-				<button type="button" onClick={handleMessage}>message</button>
-			</div>
-			<br />
-			<div>
-				<b>Sending "{messageText}" to `{topicText}`</b>
-			</div>
-			<br />
-			<div>
-				<b>Topics subscribed to</b>
-			</div>
-			{topicList.map((topic) => <div>{topic}</div>)}
+			<ScreenContent />
 		</React.Fragment>
 	);
 };
