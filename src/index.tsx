@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 
 const App = () => {
-	const [ws, _setWS] = useState<WebSocket>(new WebSocket("ws://localhost:42069/"));
+	const [ws, setWS] = useState<WebSocket>(undefined);
 	const [topicText, setTopicText] = useState<string>("");
 	const [messageText, setMessageText] = useState<string>("");
 	const [topicList, setTopicList] = useState<string[]>([]);
@@ -32,7 +32,14 @@ const App = () => {
 		});
 	};
 
-	useEffect(() => { ws.onmessage = (ev) => alert(ev.data); }, [])
+	const connectWebSocket = () => {
+		const ws = new WebSocket("ws://localhost:42069/");
+		ws.onmessage = (ev) => alert(ev.data);
+		ws.onclose = (ev) => setTimeout(() => connectWebSocket(), 5000);
+		setWS(ws);
+	};
+
+	useEffect(() => connectWebSocket(), []);
 
 	return (
 		<React.Fragment>

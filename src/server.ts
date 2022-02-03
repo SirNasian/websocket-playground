@@ -16,7 +16,9 @@ interface Message {
 
 const server_sock = new WebSocketServer({ port: server_sock_port });
 const subscription_map = new Map<string, WebSocket[]>();
+const heartbeat_map = new Map<WebSocket, NodeJS.Timeout>();
 server_sock.on("connection", (socket) => {
+	// Handle message
 	socket.on("message", (data: Message) => {
 		const message: Message = JSON.parse(data.toString());
 		if (!subscription_map.has(message.topic)) subscription_map.set(message.topic, []);
@@ -34,6 +36,12 @@ server_sock.on("connection", (socket) => {
 				break;
 		};
 	});
+	// Heartbeat
+	socket.on("pong", () => clearTimeout(heartbeat_map.get(socket)));
+	setInterval(() => {
+		heartbeat_map.set(socket, setTimeout(() => socket.terminate(), 5000));
+		socket.ping();
+	}, 2000)
 });
 
 console.log(`HTTP server running on port ${server_web_port}`);
