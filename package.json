@@ -7,6 +7,9 @@
 		"server-run": "node ./dist/server.js"
 	},
 	"devDependencies": {
+		"@emotion/react": "^11.7.1",
+		"@emotion/styled": "^11.6.0",
+		"@mui/material": "^5.4.0",
 		"@types/express": "^4.17.13",
 		"@types/react": "^17.0.38",
 		"@types/react-dom": "^17.0.11",
