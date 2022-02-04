@@ -36,7 +36,11 @@ server_sock.on("connection", (socket) => {
 					username_map.set(socket, message?.data);
 				} break;
 			case "message":
-				subscription_list.forEach((socket: WebSocket) => socket.send(message?.data));
+				const msg: Message = {
+					...message,
+					data: `[${(new Date()).toISOString()}] ${username_map.get(socket)}: ${message?.data}`,
+				};
+				subscription_list.forEach((socket: WebSocket) => socket.send(JSON.stringify(msg)));
 				break;
 		};
 	});

@@ -33,22 +33,14 @@ const App = () => {
 
 	const handleMessage = (ev: MessageEvent<any>) => {
 		const msg: Message = JSON.parse(ev.data);
-		switch (msg.action) {
-			case "register":
-				switch (msg?.data) {
-					case "success":
-						setScreen("chatroom");
-						break;
-					case "failure":
-						setUsername("");
-						alert("That username is already taken!");
-						break;
-				}
-				break;
-			case "message":
-				console.log(`${msg?.topic}: ${msg?.data}`);
-				break;
-		}
+		if (msg.action === "register")
+			if (msg?.data === "success") {
+				setScreen("chatroom");
+			} else if (msg?.data === "failure") {
+				setUsername("");
+				// TODO: replace alert with toast or component popup
+				alert("That username is already taken!");
+			}
 	};
 
 	const handleLogin = (username: string) => {
@@ -62,7 +54,7 @@ const App = () => {
 	const ScreenContent = () => {
 		switch (screen) {
 			case "login": return <LoginScreen onLogin={handleLogin} />;
-			case "chatroom": return <ChatRoomScreen username={username} />
+			case "chatroom": return <ChatRoomScreen ws={ws} username={username} />
 		}
 	};
 
