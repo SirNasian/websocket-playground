@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Box } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { Message } from "./common";
 import { LoginScreen } from "./LoginScreen";
 
 type Screen = "login" | "chatroom";
@@ -23,13 +24,38 @@ const App = () => {
 
 	const connectWebSocket = () => {
 		const ws = new WebSocket("ws://localhost:42069/");
-		ws.onmessage = (ev) => alert(ev.data);
+		ws.onmessage = handleMessage;
 		setWS(ws);
 	};
 
+	const sendMessage = (msg: Message) => ws.send(JSON.stringify(msg));
+
+	const handleMessage = (ev: MessageEvent<any>) => {
+		const msg: Message = JSON.parse(ev.data);
+		switch (msg.action) {
+			case "register":
+				switch (msg?.data) {
+					case "success":
+						setScreen("chatroom");
+						break;
+					case "failure":
+						setUsername("");
+						alert("That username is already taken!");
+						break;
+				}
+				break;
+			case "message":
+				console.log(`${msg?.topic}: ${msg?.data}`);
+				break;
+		}
+	};
+
 	const handleLogin = (username: string) => {
+		sendMessage({
+			action: "register",
+			data: username,
+		});
 		setUsername(username);
-		setScreen("chatroom");
 	};
 
 	const ScreenContent = () => {
