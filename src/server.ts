@@ -32,7 +32,7 @@ server_sock.on("connection", (socket) => {
 				subscription_list.splice(subscription_list.indexOf(socket), 1);
 				break;
 			case "register":
-				if (Array.from(username_map.values()).includes(msg_reg.username)) {
+				if (Array.from(username_map.values()).find((username) => username.toUpperCase() === msg_reg.username.toUpperCase())) {
 					sendMessage({...msg_reg, success: false});
 				} else {
 					sendMessage({...msg_reg, success: true});
