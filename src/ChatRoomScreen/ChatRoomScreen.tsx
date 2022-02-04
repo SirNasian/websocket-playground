@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState }  from "react";
 import { Box, Container, Grid, Paper } from "@mui/material";
 import { ChatInput } from "./ChatInput";
-import { ChatLog } from "./ChatLog";
+import { ChatLog, ChatRecord } from "./ChatLog";
 import { ChatMessage } from "../common";
 
 const PaperGrid = ({
@@ -30,9 +30,9 @@ export const ChatRoomScreen = ({
 	username: string;
 }) => {
 	const [currentRoom, setCurrentRoom] = useState<string>("TODO: current room");
-	const [chatLog, setChatLog] = useState<Map<string, string[]>>(undefined);
+	const [chatLog, setChatLog] = useState<Map<string, ChatRecord[]>>(undefined);
 
-	const chatLogRef = useRef<Map<string, string[]>>(chatLog);
+	const chatLogRef = useRef<Map<string, ChatRecord[]>>(chatLog);
 	useEffect(() => {chatLogRef.current = chatLog}, [chatLog]);
 
 	const sendMessage = (text: string) => ws.send(JSON.stringify({
@@ -46,15 +46,15 @@ export const ChatRoomScreen = ({
 	const handleMessage = (ev: MessageEvent<any>) => {
 		const chatLog = chatLogRef.current;
 		const msg = JSON.parse(ev.data) as ChatMessage;
-		if (msg.action === "message") {
-			if (chatLog && !chatLog.has(msg?.topic)) chatLog.set(msg?.topic, []);
-			chatLog?.get(msg?.topic)?.push(`[${msg.data.date}] ${msg.data.user}: ${msg.data.text}`);
-			setChatLog(new Map<string, string[]>(chatLog));
+		if (chatLog && (msg.action === "message")) {
+			if (!chatLog.has(msg.topic)) chatLog.set(msg.topic, []);
+			chatLog.get(msg.topic).push({...msg.data, date: new Date(msg.data.date)});
+			setChatLog(new Map<string, ChatRecord[]>(chatLog));
 		}
 	};
 
 	useEffect(() => {
-		setChatLog(new Map<string, string[]>());
+		setChatLog(new Map<string, ChatRecord[]>());
 		const onmessage_original = ws.onmessage;
 		ws.send(JSON.stringify({action:"subscribe",topic:"TODO: current room"}));
 		ws.onmessage = handleMessage;
