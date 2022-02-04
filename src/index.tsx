@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { Box } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Message } from "./common";
+import { RegistrationMessage, AnyMessage} from "./common";
 import { LoginScreen } from "./LoginScreen";
 import { ChatRoomScreen } from "./ChatRoomScreen";
 
@@ -29,14 +29,14 @@ const App = () => {
 		setWS(ws);
 	};
 
-	const sendMessage = (msg: Message) => ws.send(JSON.stringify(msg));
+	const sendMessage = (msg: AnyMessage) => ws.send(JSON.stringify(msg));
 
 	const handleMessage = (ev: MessageEvent<any>) => {
-		const msg: Message = JSON.parse(ev.data);
+		let msg = JSON.parse(ev.data) as RegistrationMessage;
 		if (msg.action === "register")
-			if (msg?.data === "success") {
+			if (msg.success) {
 				setScreen("chatroom");
-			} else if (msg?.data === "failure") {
+			} else {
 				setUsername("");
 				// TODO: replace alert with toast or component popup
 				alert("That username is already taken!");
@@ -46,7 +46,7 @@ const App = () => {
 	const handleLogin = (username: string) => {
 		sendMessage({
 			action: "register",
-			data: username,
+			username: username,
 		});
 		setUsername(username);
 	};

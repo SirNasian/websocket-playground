@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState }  from "react";
 import { Box, Container, Grid, Paper } from "@mui/material";
 import { ChatInput } from "./ChatInput";
 import { ChatLog } from "./ChatLog";
-import { Message } from "../common";
+import { ChatMessage } from "../common";
 
 const PaperGrid = ({
 	item,
@@ -38,17 +38,17 @@ export const ChatRoomScreen = ({
 	const sendMessage = (text: string) => ws.send(JSON.stringify({
 		action: "message",
 		topic: currentRoom,
-		data: text,
+		data: { text: text },
 	}));
 
 	const handleChatInputSend = (text: string) => sendMessage(text);
 
 	const handleMessage = (ev: MessageEvent<any>) => {
 		const chatLog = chatLogRef.current;
-		const msg: Message = JSON.parse(ev.data);
+		const msg = JSON.parse(ev.data) as ChatMessage;
 		if (msg.action === "message") {
 			if (chatLog && !chatLog.has(msg?.topic)) chatLog.set(msg?.topic, []);
-			chatLog?.get(msg?.topic)?.push(msg?.data);
+			chatLog?.get(msg?.topic)?.push(`[${msg.data.date}] ${msg.data.user}: ${msg.data.text}`);
 			setChatLog(new Map<string, string[]>(chatLog));
 		}
 	};

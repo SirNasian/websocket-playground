@@ -1,1 +1,1 @@
-export { Message } from "./Message";
+export { Message, RegistrationMessage, SubscriptionMessage, ChatMessage, AnyMessage } from "./Message";
