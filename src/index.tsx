@@ -4,6 +4,7 @@ import { Box } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Message } from "./common";
 import { LoginScreen } from "./LoginScreen";
+import { ChatRoomScreen } from "./ChatRoomScreen";
 
 type Screen = "login" | "chatroom";
 
@@ -61,7 +62,7 @@ const App = () => {
 	const ScreenContent = () => {
 		switch (screen) {
 			case "login": return <LoginScreen onLogin={handleLogin} />;
-			case "chatroom": return <Box><Box>TODO: implement this</Box><Box>Username: {username}</Box></Box>
+			case "chatroom": return <ChatRoomScreen username={username} />
 		}
 	};
 
