@@ -1,5 +1,6 @@
 import express from "express";
 import { WebSocketServer, WebSocket } from "ws";
+import { Message } from "./common";
 
 const server_web_port  =  3000;
 const server_sock_port = 42069;
@@ -7,12 +8,6 @@ const server_sock_port = 42069;
 const server_web = express();
 server_web.use(express.static("public"));
 server_web.listen(server_web_port);
-
-interface Message {
-	action: "subscribe" | "unsubscribe" | "message";
-	topic: string;
-	data?: string;
-};
 
 const server_sock = new WebSocketServer({ port: server_sock_port });
 const subscription_map = new Map<string, WebSocket[]>();
